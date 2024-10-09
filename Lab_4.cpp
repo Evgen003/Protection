@@ -118,28 +118,31 @@ unsigned int function(int right, Key48 key) {
     return getHalfBlock(expansion);
 }
 
-vector<Block64> coding(vector<Block64>inBlocks, vector<Key48>keys) {
+vector<Block64> coding(vector<Block64>inBlocks, vector<Key48>keys, long long int startVec) {
     Block64 newBlock;
     vector<Block64> outBlocks;
     int right;
+    long long int prevCodeBlock = startVec;
     for (auto block : inBlocks) {
         newBlock = block;
+        newBlock.a ^= prevCodeBlock;
         for (int i = 0; i < 16; i++) {
             //left = block.half.left;
             right = newBlock.half.right;
             newBlock.half.right = newBlock.half.left ^ function(right, keys[i]);
             newBlock.half.left = right;
         }
+        prevCodeBlock = newBlock.a;
         outBlocks.push_back(newBlock);
     }
     return outBlocks;
 }
 
-vector<Block64> decoding(vector<Block64>inBlocks, vector<Key48>keys) {
+vector<Block64> decoding(vector<Block64>inBlocks, vector<Key48>keys, long long int startVec) {
     Block64 newBlock;
     vector<Block64> outBlocks;
     int left;
-    int right;
+    long long int prevCodeBlock = startVec;
     for (auto block : inBlocks) {
         newBlock = block;
         for (int i = 15; i >= 0; i--) {
@@ -148,6 +151,8 @@ vector<Block64> decoding(vector<Block64>inBlocks, vector<Key48>keys) {
             newBlock.half.left = newBlock.half.right ^ function(left, keys[i]);
             newBlock.half.right = left;
         }
+        newBlock.a ^= prevCodeBlock;
+        prevCodeBlock = block.a;
         outBlocks.push_back(newBlock);
     }
     return outBlocks;
@@ -162,11 +167,12 @@ int main() {
     str = "ifnrwluvab2873rbbye7193y7rfewakhgjkasfcfdgy";
     cout << str << endl;
 
+    long long int startVec = 0x137881bdea5a2fde;
     vector<Key48> keys = getKeys(0x25df32ac2473dea2);
     vector<Block64> blocks = getBlocks(str);
     
     blocks = initialPermutation(blocks);
-    blocks = coding(blocks, keys);
+    blocks = coding(blocks, keys, startVec);
     //blocks = decoding(blocks, keys);
     blocks = reversePermutatition(blocks);
     str=getString(blocks);
@@ -174,7 +180,7 @@ int main() {
 
     blocks = initialPermutation(blocks);
     //blocks = coding(blocks, keys);
-    blocks = decoding(blocks, keys);
+    blocks = decoding(blocks, keys, startVec);
     blocks = reversePermutatition(blocks);
     str = getString(blocks);
     cout << str << endl;
