@@ -168,7 +168,7 @@ int main() {
     cout << str << endl;
 
     long long int startVec = 0x137881bdea5a2fde;
-    vector<Key48> keys = getKeys(0x25df32ac2473dea2);
+    vector<Key48> keys = getKeys(0x25df32ac2473dea2)
     vector<Block64> blocks = getBlocks(str);
     
     blocks = initialPermutation(blocks);
