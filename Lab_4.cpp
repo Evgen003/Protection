@@ -6,6 +6,7 @@
 #include "Key.h"
 #include "SBlock.h"
 
+#define TOGGLE_BIT 0
 using namespace std;
 
 struct HalfBlocks {
@@ -161,8 +162,9 @@ int main() {
     //cin >> str;
     str = "ifnrwluvab2873rbbye7193y7rfewakhgjkasfcfdgy";
     cout << str << endl;
-
-    vector<Key48> keys = getKeys(0x25df32ac2473dea2);
+    vector<Key48> keys;
+    //keys = getKeys(0x25df32ac2473dea2);
+    keys = getKeys(0xfefefefefefefefe);
     vector<Block64> blocks = getBlocks(str);
     
     blocks = initialPermutation(blocks);
@@ -171,6 +173,15 @@ int main() {
     blocks = reversePermutatition(blocks);
     str=getString(blocks);
     cout << str << endl << endl;
+
+#if TOGGLE_BIT
+    if (blocks[0].a & (1<< 20)) {
+        blocks[0].a &= ~(1 << 20);
+    }
+    else {
+        blocks[0].a |= (1 << 20);
+    }
+#endif
 
     blocks = initialPermutation(blocks);
     //blocks = coding(blocks, keys);
