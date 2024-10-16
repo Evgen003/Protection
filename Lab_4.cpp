@@ -163,8 +163,8 @@ int main() {
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
     cout << "Введите строку:\n";
-    //cin >> str;
-    str = "ifnrwluvab2873rbbye7193y7rfewakhgjkasfcfdgy";
+    //getline(cin, str);
+    str = "ifnrwluvab287 3rbbye7193y7rf ewakhgjkasfcfdgy";
     cout << str << endl;
 
     long long int startVec = 0x137881bdea5a2fde;
