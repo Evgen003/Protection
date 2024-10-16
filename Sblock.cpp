@@ -68,13 +68,13 @@ int getHalfBlock(Key48 extension) {
 	for (int i = 0; i < 8; i++) {
 		k = 0;
 		l = 0;
-		if (sBlock[i].s1 & (1 << 0)) k |= 1 << 0;
-		if (sBlock[i].s1 & (1 << 5)) k |= 1 << 1;
+		if (sBlock[i].s1 & (1 << 0)) k |= 1 << 1;
+		if (sBlock[i].s1 & (1 << 5)) k |= 1 << 0;
 
-		if (sBlock[i].s1 & (1 << 1)) l |= 1 << 0;
-		if (sBlock[i].s1 & (1 << 2)) l |= 1 << 1;
-		if (sBlock[i].s1 & (1 << 3)) l |= 1 << 2;
-		if (sBlock[i].s1 & (1 << 4)) l |= 1 << 3;
+		if (sBlock[i].s1 & (1 << 1)) l |= 1 << 3;
+		if (sBlock[i].s1 & (1 << 2)) l |= 1 << 2;
+		if (sBlock[i].s1 & (1 << 3)) l |= 1 << 1;
+		if (sBlock[i].s1 & (1 << 4)) l |= 1 << 0;
 		vec[i].a = 0;
 		vec[i].a = TableSBlocks[i][k][l];
 	}

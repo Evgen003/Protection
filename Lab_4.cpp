@@ -7,6 +7,7 @@
 #include "SBlock.h"
 
 #define TOGGLE_BIT 0
+#define WEAK_KEY 0
 using namespace std;
 
 struct HalfBlocks {
@@ -140,7 +141,6 @@ vector<Block64> decoding(vector<Block64>inBlocks, vector<Key48>keys) {
     Block64 newBlock;
     vector<Block64> outBlocks;
     int left;
-    int right;
     for (auto block : inBlocks) {
         newBlock = block;
         for (int i = 15; i >= 0; i--) {
@@ -159,12 +159,19 @@ int main() {
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
     cout << "Введите строку:\n";
-    //cin >> str;
-    str = "ifnrwluvab2873rbbye7193y7rfewakhgjkasfcfdgy";
+    getline(cin, str);
+    //str = "ifnrwluvab2873rbbye719 3y7rfewakhgjkasfcfdgy";
     cout << str << endl;
     vector<Key48> keys;
-    //keys = getKeys(0x25df32ac2473dea2);
-    keys = getKeys(0xfefefefefefefefe);
+#if WEAK_KEY
+    //  0x0101010101010101
+    //  0xfefefefefefefefe
+    //  0x1f1f1f1f0e0e0e0e
+    //  0xe0e0e0e0f1f1f1f1
+    keys = getKeys(0xe0e0e0e0f1f1f1f1);
+#else
+    keys = getKeys(0x25df32ac2473dea2);
+#endif
     vector<Block64> blocks = getBlocks(str);
     
     blocks = initialPermutation(blocks);
@@ -184,16 +191,16 @@ int main() {
 #endif
 
     blocks = initialPermutation(blocks);
-    //blocks = coding(blocks, keys);
+#if WEAK_KEY
+    blocks = coding(blocks, keys);
+#else
     blocks = decoding(blocks, keys);
+#endif    
     blocks = reversePermutatition(blocks);
     str = getString(blocks);
     cout << str << endl;
 
-    //getKeys(0x0101010101010101);
-    //getKeys(0xfefefefefefefefe);
-    //getKeys(0x1f1f1f1f0e0e0e0e);
-    //getKeys(0xe0e0e0e0f1f1f1f1);
+    
 
     return 0;
 }
