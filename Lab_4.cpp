@@ -132,6 +132,9 @@ vector<Block64> coding(vector<Block64>inBlocks, vector<Key48>keys, long long int
             newBlock.half.right = newBlock.half.left ^ function(right, keys[i]);
             newBlock.half.left = right;
         }
+        int a = newBlock.half.left;
+        newBlock.half.left = newBlock.half.right;
+        newBlock.half.right = a;
         prevCodeBlock = newBlock.a;
         outBlocks.push_back(newBlock);
     }
@@ -141,16 +144,19 @@ vector<Block64> coding(vector<Block64>inBlocks, vector<Key48>keys, long long int
 vector<Block64> decoding(vector<Block64>inBlocks, vector<Key48>keys, long long int startVec) {
     Block64 newBlock;
     vector<Block64> outBlocks;
-    int left;
+    int right;
     long long int prevCodeBlock = startVec;
     for (auto block : inBlocks) {
         newBlock = block;
         for (int i = 15; i >= 0; i--) {
             //left = block.half.left;
-            left = newBlock.half.left;
-            newBlock.half.left = newBlock.half.right ^ function(left, keys[i]);
-            newBlock.half.right = left;
+            right = newBlock.half.right;
+            newBlock.half.right = newBlock.half.left ^ function(right, keys[i]);
+            newBlock.half.left = right;
         }
+        int a = newBlock.half.left;
+        newBlock.half.left = newBlock.half.right;
+        newBlock.half.right = a;
         newBlock.a ^= prevCodeBlock;
         prevCodeBlock = block.a;
         outBlocks.push_back(newBlock);
