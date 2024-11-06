@@ -6,6 +6,9 @@
 #include "Key.h"
 #include "SBlock.h"
 
+#define TOGGLE_BIT 0
+#define EQUAL_BLOCKS 1
+
 using namespace std;
 
 struct HalfBlocks {
@@ -170,19 +173,34 @@ int main() {
     SetConsoleOutputCP(1251);
     cout << "Введите строку:\n";
     //getline(cin, str);
+#if EQUAL_BLOCKS
+    str = "sjeb38qjsjeb38qjsjeb38qj";
+#else
     str = "ifnrwluvab287 3rbbye7193y7rf ewakhgjkasfcfdgy";
+#endif
     cout << str << endl;
 
     long long int startVec = 0x137881bdea5a2fde;
     vector<Key48> keys = getKeys(0x25df32ac2473dea2);
     vector<Block64> blocks = getBlocks(str);
-    
+
     blocks = initialPermutation(blocks);
     blocks = coding(blocks, keys, startVec);
     //blocks = decoding(blocks, keys);
     blocks = reversePermutatition(blocks);
     str=getString(blocks);
     cout << str << endl << endl;
+
+#if TOGGLE_BIT
+    // инвертирование 20 бита 0 блока
+    if (blocks[0].a & (1 << 12)) {
+        blocks[0].a &= ~(1 << 12);
+    }
+    else {
+        blocks[0].a |= (1 << 12);
+    }
+#endif
+
 
     blocks = initialPermutation(blocks);
     //blocks = coding(blocks, keys);
