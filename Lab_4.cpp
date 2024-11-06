@@ -162,10 +162,10 @@ string str;
 int main() {
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
-    cout << "Введите строку:\n";
+    //cout << "Введите строку:\n";
     //getline(cin, str);
     str = "abcdefgh";
-    cout << str << endl;
+    cout << "Открытый текст: " << str << endl;
     vector<Key48> keys;
 #if WEAK_KEY
     //  0x0101010101010101
@@ -183,7 +183,7 @@ int main() {
     //blocks = decoding(blocks, keys);
     blocks = reversePermutatition(blocks);
     str=getString(blocks);
-    cout << str << endl << endl;
+    cout << "Шифрограмма: " << str << endl;
 
 #if TOGGLE_BIT
     // инвертирование 20 бита 0 блока
@@ -203,6 +203,6 @@ int main() {
 #endif    
     blocks = reversePermutatition(blocks);
     str = getString(blocks);
-    cout << str << endl;
+    cout << "Открытый текст: " << str << endl;
     return 0;
 }

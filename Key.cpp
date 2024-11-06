@@ -22,14 +22,13 @@ vector<Key48> getKeys(long long int inKey) {
     key56.k = 0;
     
     for (int i = 0; i < 56; i++) {
-        if ((1i64 << (tablePC1[i]+1)) & inKey) {
+        if ((1i64 << (tablePC1[i] + 1)) & inKey) {
             key56.k |= (1i64 << i);
         }
         else {
             //key56.k &= ~(1 << i);
         }
     }
-    cout << endl;
     half56.left = key56.k >> 28;
     half56.right = key56.k;
 
