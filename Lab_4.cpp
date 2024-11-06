@@ -6,6 +6,8 @@
 #include "Key.h"
 #include "SBlock.h"
 
+#define TOGGLE_BIT 0
+#define WEAK_KEY 1
 using namespace std;
 
 struct HalfBlocks {
@@ -103,9 +105,7 @@ vector<Block64>reversePermutatition(vector<Block64>& inBlocks) {
 unsigned int function(int right, Key48 key) {
     Key48 expansion;
     expansion.k = 0;
-    struct SBlock {
-        unsigned char k : 6;
-    };
+    
     for (int i = 0; i < 48; i++) {
         if ((1i64 << (tableE[i])) & right) {
             expansion.k |= (1i64 << i);
@@ -130,6 +130,9 @@ vector<Block64> coding(vector<Block64>inBlocks, vector<Key48>keys) {
             newBlock.half.right = newBlock.half.left ^ function(right, keys[i]);
             newBlock.half.left = right;
         }
+        int a = newBlock.half.left;
+        newBlock.half.left = newBlock.half.right;
+        newBlock.half.right = a;
         outBlocks.push_back(newBlock);
     }
     return outBlocks;
@@ -138,16 +141,18 @@ vector<Block64> coding(vector<Block64>inBlocks, vector<Key48>keys) {
 vector<Block64> decoding(vector<Block64>inBlocks, vector<Key48>keys) {
     Block64 newBlock;
     vector<Block64> outBlocks;
-    int left;
     int right;
     for (auto block : inBlocks) {
         newBlock = block;
         for (int i = 15; i >= 0; i--) {
             //left = block.half.left;
-            left = newBlock.half.left;
-            newBlock.half.left = newBlock.half.right ^ function(left, keys[i]);
-            newBlock.half.right = left;
+            right = newBlock.half.right;
+            newBlock.half.right = newBlock.half.left ^ function(right, keys[i]);
+            newBlock.half.left = right;
         }
+        int a = newBlock.half.left;
+        newBlock.half.left = newBlock.half.right;
+        newBlock.half.right = a;
         outBlocks.push_back(newBlock);
     }
     return outBlocks;
@@ -158,11 +163,19 @@ int main() {
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
     cout << "Введите строку:\n";
-    //cin >> str;
-    str = "ifnrwluvab2873rbbye7193y7rfewakhgjkasfcfdgy";
+    //getline(cin, str);
+    str = "abcdefgh";
     cout << str << endl;
-
-    vector<Key48> keys = getKeys(0x25df32ac2473dea2);
+    vector<Key48> keys;
+#if WEAK_KEY
+    //  0x0101010101010101
+    //  0xfefefefefefefefe
+    //  0x1f1f1f1f0e0e0e0e
+    //  0xe0e0e0e0f1f1f1f1
+    keys = getKeys(0x0101010101010101);
+#else
+    keys = getKeys(0x25df32ac2473dea2);
+#endif
     vector<Block64> blocks = getBlocks(str);
     
     blocks = initialPermutation(blocks);
@@ -172,17 +185,24 @@ int main() {
     str=getString(blocks);
     cout << str << endl << endl;
 
+#if TOGGLE_BIT
+    // инвертирование 20 бита 0 блока
+    if (blocks[0].a & (1<< 20)) {
+        blocks[0].a &= ~(1 << 20);
+    }
+    else {
+        blocks[0].a |= (1 << 20);
+    }
+#endif
+
     blocks = initialPermutation(blocks);
-    //blocks = coding(blocks, keys);
+#if WEAK_KEY
+    blocks = coding(blocks, keys);
+#else
     blocks = decoding(blocks, keys);
+#endif    
     blocks = reversePermutatition(blocks);
     str = getString(blocks);
     cout << str << endl;
-
-    //getKeys(0x0101010101010101);
-    //getKeys(0xfefefefefefefefe);
-    //getKeys(0x1f1f1f1f0e0e0e0e);
-    //getKeys(0xe0e0e0e0f1f1f1f1);
-
     return 0;
 }

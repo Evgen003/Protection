@@ -11,8 +11,8 @@ struct Key56 {
     unsigned long long int k : 56;
 };
 struct Half56 {
-    unsigned int left : 28;
     unsigned int right : 28;
+    unsigned int left : 28;
 };
 struct Key48 {
     unsigned long long int k : 48;
