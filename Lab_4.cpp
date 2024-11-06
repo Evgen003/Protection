@@ -7,7 +7,7 @@
 #include "SBlock.h"
 
 #define TOGGLE_BIT 0
-#define WEAK_KEY 1
+
 using namespace std;
 
 struct HalfBlocks {
@@ -167,15 +167,7 @@ int main() {
     str = "abcdefgh";
     cout << str << endl;
     vector<Key48> keys;
-#if WEAK_KEY
-    //  0x0101010101010101
-    //  0xfefefefefefefefe
-    //  0x1f1f1f1f0e0e0e0e
-    //  0xe0e0e0e0f1f1f1f1
-    keys = getKeys(0x0101010101010101);
-#else
-    keys = getKeys(0x25df32ac2473dea2);
-#endif
+
     vector<Block64> blocks = getBlocks(str);
     
     blocks = initialPermutation(blocks);
@@ -196,11 +188,7 @@ int main() {
 #endif
 
     blocks = initialPermutation(blocks);
-#if WEAK_KEY
-    blocks = coding(blocks, keys);
-#else
     blocks = decoding(blocks, keys);
-#endif    
     blocks = reversePermutatition(blocks);
     str = getString(blocks);
     cout << str << endl;
