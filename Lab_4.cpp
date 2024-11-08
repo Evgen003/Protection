@@ -7,7 +7,7 @@
 #include "SBlock.h"
 
 #define TOGGLE_BIT 0
-#define WEAK_KEY 1
+#define WEAK_KEY 0
 using namespace std;
 
 struct HalfBlocks {
