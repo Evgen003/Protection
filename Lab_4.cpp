@@ -118,42 +118,46 @@ unsigned int function(int right, Key48 key) {
     return getHalfBlock(expansion);
 }
 
-vector<Block64> coding(vector<Block64>inBlocks, vector<Key48>keys) {
+vector<Block64> coding(vector<Block64>inBlocks, vector<Key48>keys, long long int initVec) {
     Block64 newBlock;
     vector<Block64> outBlocks;
     int right;
+    //Block64 prevBlock;
+    //prevBlock.a = initVec;
+    // newBlock = prevBlock;
+    newBlock.a = initVec;
     for (auto block : inBlocks) {
-        newBlock = block;
         for (int i = 0; i < 16; i++) {
             //left = block.half.left;
             right = newBlock.half.right;
             newBlock.half.right = newBlock.half.left ^ function(right, keys[i]);
             newBlock.half.left = right;
         }
-        int a = newBlock.half.left;
-        newBlock.half.left = newBlock.half.right;
-        newBlock.half.right = a;
+        
+        newBlock.a ^= block.a;
         outBlocks.push_back(newBlock);
     }
     return outBlocks;
 }
 
-vector<Block64> decoding(vector<Block64>inBlocks, vector<Key48>keys) {
+vector<Block64> decoding(vector<Block64>inBlocks, vector<Key48>keys, long long initVec) {
     Block64 newBlock;
     vector<Block64> outBlocks;
     int right;
+    //Block64 prevBlock;
+    //prevBlock.a = initVec;
+    newBlock.a = initVec;
     for (auto block : inBlocks) {
-        newBlock = block;
-        for (int i = 15; i >= 0; i--) {
+        for (int i = 0; i < 16; i++) {
             //left = block.half.left;
             right = newBlock.half.right;
             newBlock.half.right = newBlock.half.left ^ function(right, keys[i]);
             newBlock.half.left = right;
         }
-        int a = newBlock.half.left;
-        newBlock.half.left = newBlock.half.right;
-        newBlock.half.right = a;
+        
+        newBlock.a ^= block.a;
         outBlocks.push_back(newBlock);
+        newBlock = block;
     }
     return outBlocks;
 }
@@ -164,14 +168,15 @@ int main() {
     SetConsoleOutputCP(1251);
     cout << "Введите строку:\n";
     //getline(cin, str);
-    str = "abcdefgh";
+    str = "abcdefghabcdefghabcdefgh";
     cout << str << endl;
-    vector<Key48> keys;
 
+    long long int initVec = 0x137881bdea5a2fde;
+    vector<Key48> keys = getKeys(0x25df32ac2473dea2);
     vector<Block64> blocks = getBlocks(str);
     
     blocks = initialPermutation(blocks);
-    blocks = coding(blocks, keys);
+    blocks = coding(blocks, keys, initVec);
     //blocks = decoding(blocks, keys);
     blocks = reversePermutatition(blocks);
     str=getString(blocks);
@@ -188,7 +193,7 @@ int main() {
 #endif
 
     blocks = initialPermutation(blocks);
-    blocks = decoding(blocks, keys);
+    blocks = decoding(blocks, keys, initVec);
     blocks = reversePermutatition(blocks);
     str = getString(blocks);
     cout << str << endl;
