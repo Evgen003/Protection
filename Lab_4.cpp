@@ -9,11 +9,12 @@
 #define TOGGLE_BIT 0
 
 using namespace std;
-
+// структура для 32 битных полублоков
 struct HalfBlocks {
     int left;
     int right;
 };
+// объединение для 64 битного блока
 union Block64 {
     long long int a;
     char s[8];
@@ -34,6 +35,15 @@ int tableE[48] = {            // таблица 3
     23, 24, 25, 26, 27, 28, 27, 28, 29, 30, 31, 0
 };
 
+// полу
+vector<unsigned char> getBlocks(string s, int blockSize) {
+    vector<unsigned char> vec;
+    for (auto symb : s) {
+        vec.push_back(symb);
+    }
+
+    return vec;
+}
 
 vector<Block64> getBlocks(string s) {
     string str = s;
@@ -118,6 +128,53 @@ unsigned int function(int right, Key48 key) {
     return getHalfBlock(expansion);
 }
 
+vector<Block64> coding(vector<long long int>inBlocks, vector<Key48>keys, long long int initVec) {
+    int blockSize = 8;
+    Block64 newBlock;
+    Block64 codeBlock;
+    vector<Block64> outBlocks;
+    int right;
+    //Block64 prevBlock;
+    //prevBlock.a = initVec;
+    // newBlock = prevBlock;
+    newBlock.a = initVec;
+    for (auto block : inBlocks) {
+        for (int i = 0; i < 16; i++) {
+            //left = block.half.left;
+            right = newBlock.half.right;
+            newBlock.half.right = newBlock.half.left ^ function(right, keys[i]);
+            newBlock.half.left = right;
+        }
+
+        codeBlock.a = (newBlock.a >> (64 - blockSize)) ^ block.a;
+        newBlock.a = (newBlock.a << blockSize) | codeBlock.a;
+        outBlocks.push_back(codeBlock);
+    }
+    return outBlocks;
+}
+
+vector<Block64> decoding(vector<Block64>inBlocks, vector<Key48>keys, long long initVec) {
+    Block64 newBlock;
+    vector<Block64> outBlocks;
+    int right;
+    //Block64 prevBlock;
+    //prevBlock.a = initVec;
+    newBlock.a = initVec;
+    for (auto block : inBlocks) {
+        for (int i = 0; i < 16; i++) {
+            //left = block.half.left;
+            right = newBlock.half.right;
+            newBlock.half.right = newBlock.half.left ^ function(right, keys[i]);
+            newBlock.half.left = right;
+        }
+
+        newBlock.a ^= block.a;
+        outBlocks.push_back(newBlock);
+        newBlock = block;
+    }
+    return outBlocks;
+}
+
 vector<Block64> coding(vector<Block64>inBlocks, vector<Key48>keys, long long int initVec) {
     Block64 newBlock;
     vector<Block64> outBlocks;
@@ -133,9 +190,9 @@ vector<Block64> coding(vector<Block64>inBlocks, vector<Key48>keys, long long int
             newBlock.half.right = newBlock.half.left ^ function(right, keys[i]);
             newBlock.half.left = right;
         }
-        
+                
         newBlock.a ^= block.a;
-        outBlocks.push_back(newBlock);
+        outBlocks.push_back(codeBlock);
     }
     return outBlocks;
 }
