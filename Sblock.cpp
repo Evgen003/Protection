@@ -1,12 +1,5 @@
 #include "SBlock.h"
 
-
-
-struct vec4bits{
-	unsigned char a : 4;
-};
-
-
 // таблица 4
 int TableSBlocks[8][4][16] = {	
 	// S box 1
@@ -60,32 +53,29 @@ int TableP[32] = {
 
 int getHalfBlock(Key48 extension) {
 	SBlock sBlock[8];
-	vec4bits vec[8];
 	int block = 0;
+	// разбиение на 6 битные блоки
 	for (int i = 0; i < 8; i++) {
-		sBlock[ i].s1 = extension.k >> (i * 6);
+		sBlock[i].s1 = extension.k >> (i * 6);
 	}
 	int k = 0;
 	int l = 0;
 	for (int i = 0; i < 8; i++) {
 		k = 0;
 		l = 0;
+		// формирование числа k
 		if (sBlock[i].s1 & (1 << 0)) k |= 1 << 0;
 		if (sBlock[i].s1 & (1 << 5)) k |= 1 << 1;
-
+		// формирование числа l
 		if (sBlock[i].s1 & (1 << 1)) l |= 1 << 0;
 		if (sBlock[i].s1 & (1 << 2)) l |= 1 << 1;
 		if (sBlock[i].s1 & (1 << 3)) l |= 1 << 2;
 		if (sBlock[i].s1 & (1 << 4)) l |= 1 << 3;
+		//формирование 32 битного полублока по 4  битным векторам
 		block |= TableSBlocks[i][k][l] << i*4;
-		vec[i].a = 0;
-		vec[i].a = TableSBlocks[i][k][l];
-	}
-	
-	for (int i = 0; i < 8; i++) {
-		//block |= vec[i].a << (i * 4);
 	}
 	int outBlock = 0;
+	// перестановка
 	for (int i = 0; i < 32; i++) {
 		if ((1 << i) & block) outBlock |= (1 << TableP[i]);
 	}

@@ -14,13 +14,13 @@ int tablePC2[48] = {        // таблица 8
     25, 7, 15, 6, 26, 19, 12, 1, 40, 51, 30, 36, 46, 54, 29, 39,
     50, 44, 32, 47, 43, 48, 38, 55, 33, 52, 45, 41, 49, 35, 28, 31
 };
-
+// функция формирующая ключи
 vector<Key48> getKeys(long long int inKey) {
     vector<Key48> keys48;
 	Key56 key56;
     Half56 half56;
     key56.k = 0;
-    
+    // перечтановка выбор битов исходного ключа
     for (int i = 0; i < 56; i++) {
         if ((1i64 << (tablePC1[i] + 1)) & inKey) {
             key56.k |= (1i64 << i);
@@ -29,20 +29,24 @@ vector<Key48> getKeys(long long int inKey) {
             //key56.k &= ~(1 << i);
         }
     }
+    // разбиение ключа на 2 28 битовых вектора
     half56.left = key56.k >> 28;
     half56.right = key56.k;
 
     for (int i = 0; i < 16; i++) {
         int shifts = shiftsTable[i];
+        // циклический сдвиг влево
         while (shifts > 0) {
             shifts--;
             half56.left = (half56.left << 1) | (half56.left >> (28 - 1));
             half56.right = (half56.right << 1) | (half56.right >> (28 - 1));
         }
         Key56 conc;
+        // конкатенация 28 битовых векторов
         conc.k = (half56.left << 28) | half56.right;
         Key48 key48;
         key48.k = 0;
+        // перестановка выбор для формирования 48 битового ключа
         for (int j = 0; j < 48; j++) {
             if ((1i64 << (tablePC2[j])) & conc.k) {
                 key48.k |= (1i64 << j);

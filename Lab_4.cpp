@@ -6,14 +6,16 @@
 #include "Key.h"
 #include "SBlock.h"
 
-#define TOGGLE_BIT 0
-#define WEAK_KEY 0
+#define TOGGLE_BIT 0 // инвертирование 1 бита шифртекста
+#define WEAK_KEY 0  // слабый ключ и двойное шифрование
 using namespace std;
 
+// структура для 32 битных полублоков
 struct HalfBlocks {
     int left;
     int right;
 };
+// объединение для 64 битных блоков
 union Block64 {
     long long int a;
     char s[8];
@@ -34,19 +36,21 @@ int tableE[48] = {            // таблица 3
     23, 24, 25, 26, 27, 28, 27, 28, 29, 30, 31, 0
 };
 
-
+// функция разбиения строки на блоки
 vector<Block64> getBlocks(string s) {
     string str = s;
     int startSubstr = 0;
     Block64 field;
     vector<Block64> vec;
+    // если число символов не кратно 8, то добавить в конец строки необходимое количество пробелов
     if (str.size() % 8 != 0) {
-        int a = 8 - str.size() % 8;
+        int a = 8 - str.size() % 8; // кол-во символов для дополнения
         while (a > 0) {
             str.append(" ");
             a--;
         }
     }
+    // делим дополненную строку на блоки по 8 символов
     while (startSubstr < str.size()) {
         for (int i = 0; i < 8; i++) {
             field.s[i] = str[startSubstr + i];
@@ -57,6 +61,7 @@ vector<Block64> getBlocks(string s) {
     return vec;
 }
 
+// функция конкатенации блоков
 string getString(vector<Block64> blocks) {
     string str;
     for (auto block : blocks) {
@@ -66,7 +71,7 @@ string getString(vector<Block64> blocks) {
     }
     return str;
 }
-
+// начальная перестановка битов
 vector<Block64> initialPermutation(vector<Block64> inBlocks) {
     Block64 newBlock;
     vector<Block64> outBlocks;
@@ -84,6 +89,7 @@ vector<Block64> initialPermutation(vector<Block64> inBlocks) {
     }
     return outBlocks;
 }
+// обратная перестановка битов
 vector<Block64>reversePermutatition(vector<Block64>& inBlocks) {
     Block64 newBlock;
     vector<Block64> outBlocks;
@@ -101,11 +107,11 @@ vector<Block64>reversePermutatition(vector<Block64>& inBlocks) {
     }
     return outBlocks;
 }
-
+// получение 32 битного полублока
 unsigned int function(int right, Key48 key) {
     Key48 expansion;
     expansion.k = 0;
-    
+    // 48 битное расширение 32 битного полублока
     for (int i = 0; i < 48; i++) {
         if ((1i64 << (tableE[i])) & right) {
             expansion.k |= (1i64 << i);
@@ -114,16 +120,18 @@ unsigned int function(int right, Key48 key) {
             //expansion.k &= ~(1 << i);
         }
     }
+    // гаммирование расширения и ключа
     expansion.k ^= key.k;
     return getHalfBlock(expansion);
 }
-
+// шифрование блоков
 vector<Block64> coding(vector<Block64>inBlocks, vector<Key48>keys) {
     Block64 newBlock;
     vector<Block64> outBlocks;
     int right;
     for (auto block : inBlocks) {
         newBlock = block;
+        // 16 циклов шифрующих преобразований
         for (int i = 0; i < 16; i++) {
             //left = block.half.left;
             right = newBlock.half.right;
@@ -137,7 +145,7 @@ vector<Block64> coding(vector<Block64>inBlocks, vector<Key48>keys) {
     }
     return outBlocks;
 }
-
+// дешифрование блоков
 vector<Block64> decoding(vector<Block64>inBlocks, vector<Key48>keys) {
     Block64 newBlock;
     vector<Block64> outBlocks;
@@ -168,6 +176,7 @@ int main() {
     cout << "Открытый текст: " << str << endl;
     vector<Key48> keys;
 #if WEAK_KEY
+    // слабые ключи
     //  0x0101010101010101
     //  0xfefefefefefefefe
     //  0x1f1f1f1f0e0e0e0e
@@ -176,13 +185,11 @@ int main() {
 #else
     keys = getKeys(0x25df32ac2473dea2);
 #endif
-    vector<Block64> blocks = getBlocks(str);
-    
-    blocks = initialPermutation(blocks);
-    blocks = coding(blocks, keys);
-    //blocks = decoding(blocks, keys);
-    blocks = reversePermutatition(blocks);
-    str=getString(blocks);
+    vector<Block64> blocks = getBlocks(str); // разбиение строки на блоки
+    blocks = initialPermutation(blocks); // начальная перестановка
+    blocks = coding(blocks, keys); // шифрование
+    blocks = reversePermutatition(blocks); // обратная перестановка
+    str=getString(blocks); // получение строки шифрованного текста
     cout << "Шифрограмма: " << str << endl;
 
 #if TOGGLE_BIT
@@ -195,14 +202,14 @@ int main() {
     }
 #endif
 
-    blocks = initialPermutation(blocks);
+    blocks = initialPermutation(blocks); // начальная перестановка
 #if WEAK_KEY
-    blocks = coding(blocks, keys);
+    blocks = coding(blocks, keys); // повторное шифрование при слабом ключе
 #else
-    blocks = decoding(blocks, keys);
+    blocks = decoding(blocks, keys); // дешифрование
 #endif    
-    blocks = reversePermutatition(blocks);
-    str = getString(blocks);
+    blocks = reversePermutatition(blocks); // обратная перестановка
+    str = getString(blocks); // получение строки открытого цикла
     cout << "Открытый текст: " << str << endl;
     return 0;
 }
