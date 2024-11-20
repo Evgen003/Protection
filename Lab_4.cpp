@@ -165,15 +165,14 @@ vector<Block64> decoding(vector<Block64>inBlocks, vector<Key48>keys) {
     }
     return outBlocks;
 }
-
 string str;
 int main() {
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
     //cout << "Введите строку:\n";
     //getline(cin, str);
-    str = "abcdefgh";
-    cout << "Открытый текст: " << str << endl;
+    str = "This is a test. Это тест. 23576938@$&**$$";
+    cout << "Открытый текст:\n" << str << endl;
     vector<Key48> keys;
 #if WEAK_KEY
     // слабые ключи
@@ -190,7 +189,7 @@ int main() {
     blocks = coding(blocks, keys); // шифрование
     blocks = reversePermutatition(blocks); // обратная перестановка
     str=getString(blocks); // получение строки шифрованного текста
-    cout << "Шифрограмма: " << str << endl;
+    cout << "Шифрограмма:\n" << str << endl;
 
 #if TOGGLE_BIT
     // инвертирование 20 бита 0 блока
@@ -210,6 +209,6 @@ int main() {
 #endif    
     blocks = reversePermutatition(blocks); // обратная перестановка
     str = getString(blocks); // получение строки открытого цикла
-    cout << "Открытый текст: " << str << endl;
+    cout << "Открытый текст:\n" << str << endl;
     return 0;
 }
