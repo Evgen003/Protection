@@ -6,15 +6,16 @@
 #include "Key.h"
 #include "SBlock.h"
 
-#define TOGGLE_BIT 0
-#define EQUAL_BLOCKS 1
+#define TOGGLE_BIT 0 // инвертирование 1 бита шифртекста
+#define EQUAL_BLOCKS 1 // одинаковые блоки
 
 using namespace std;
-
+// структура для 32 битных полублоков
 struct HalfBlocks {
     int left;
     int right;
 };
+// объединение для 64 битных блоков
 union Block64 {
     long long int a;
     char s[8];
@@ -35,19 +36,21 @@ int tableE[48] = {            // таблица 3
     23, 24, 25, 26, 27, 28, 27, 28, 29, 30, 31, 0
 };
 
-
+// функция разбиения строки на блоки
 vector<Block64> getBlocks(string s) {
     string str = s;
     int startSubstr = 0;
     Block64 field;
     vector<Block64> vec;
+    // если число символов не кратно 8, то добавить в конец строки необходимое количество пробелов
     if (str.size() % 8 != 0) {
-        int a = 8 - str.size() % 8;
+        int a = 8 - str.size() % 8; // кол-во символов для дополнения
         while (a > 0) {
             str.append(" ");
             a--;
         }
     }
+    // делим дополненную строку на блоки по 8 символов
     while (startSubstr < str.size()) {
         for (int i = 0; i < 8; i++) {
             field.s[i] = str[startSubstr + i];
@@ -57,7 +60,7 @@ vector<Block64> getBlocks(string s) {
     }
     return vec;
 }
-
+// функция конкатенации блоков
 string getString(vector<Block64> blocks) {
     string str;
     for (auto block : blocks) {
@@ -67,7 +70,7 @@ string getString(vector<Block64> blocks) {
     }
     return str;
 }
-
+// начальная перестановка битов
 vector<Block64> initialPermutation(vector<Block64> inBlocks) {
     Block64 newBlock;
     vector<Block64> outBlocks;
@@ -85,6 +88,7 @@ vector<Block64> initialPermutation(vector<Block64> inBlocks) {
     }
     return outBlocks;
 }
+// обратная перестановка битов
 vector<Block64>reversePermutatition(vector<Block64>& inBlocks) {
     Block64 newBlock;
     vector<Block64> outBlocks;
@@ -102,13 +106,14 @@ vector<Block64>reversePermutatition(vector<Block64>& inBlocks) {
     }
     return outBlocks;
 }
-
+// получение 32 битного полублока
 unsigned int function(int right, Key48 key) {
     Key48 expansion;
     expansion.k = 0;
     struct SBlock {
         unsigned char k : 6;
     };
+    // 48 битное расширение 32 битного полублока
     for (int i = 0; i < 48; i++) {
         if ((1i64 << (tableE[i])) & right) {
             expansion.k |= (1i64 << i);
@@ -117,15 +122,17 @@ unsigned int function(int right, Key48 key) {
             //expansion.k &= ~(1 << i);
         }
     }
+    // гаммирование расширения и ключа
     expansion.k ^= key.k;
     return getHalfBlock(expansion);
 }
-
+// шифрование блоков
 vector<Block64> coding(vector<Block64>inBlocks, vector<Key48>keys, long long int startVec) {
     Block64 newBlock;
     vector<Block64> outBlocks;
     int right;
     long long int prevCodeBlock = startVec;
+    // 16 циклов шифрующих преобразований
     for (auto block : inBlocks) {
         newBlock = block;
         newBlock.a ^= prevCodeBlock;
@@ -143,7 +150,7 @@ vector<Block64> coding(vector<Block64>inBlocks, vector<Key48>keys, long long int
     }
     return outBlocks;
 }
-
+// дешифрование блоков
 vector<Block64> decoding(vector<Block64>inBlocks, vector<Key48>keys, long long int startVec) {
     Block64 newBlock;
     vector<Block64> outBlocks;
@@ -174,21 +181,21 @@ int main() {
     cout << "Введите строку:\n";
     //getline(cin, str);
 #if EQUAL_BLOCKS
+    // одинаковые блоки
     str = "sjeb38qjsjeb38qjsjeb38qj";
 #else
     str = "ifnrwluvab287 3rbbye7193y7rf ewakhgjkasfcfdgy";
 #endif
     cout << str << endl;
-
+    // начальный вектор
     long long int startVec = 0x137881bdea5a2fde;
     vector<Key48> keys = getKeys(0x25df32ac2473dea2);
-    vector<Block64> blocks = getBlocks(str);
+    vector<Block64> blocks = getBlocks(str); // разбиение строки на блоки
 
-    blocks = initialPermutation(blocks);
-    blocks = coding(blocks, keys, startVec);
-    //blocks = decoding(blocks, keys);
-    blocks = reversePermutatition(blocks);
-    str=getString(blocks);
+    blocks = initialPermutation(blocks); // начальная перестановка
+    blocks = coding(blocks, keys, startVec); // шифрование
+    blocks = reversePermutatition(blocks); // обратная перестановка
+    str=getString(blocks); // получение строки шифрованного текста
     cout << str << endl << endl;
 
 #if TOGGLE_BIT
@@ -202,11 +209,10 @@ int main() {
 #endif
 
 
-    blocks = initialPermutation(blocks);
-    //blocks = coding(blocks, keys);
-    blocks = decoding(blocks, keys, startVec);
-    blocks = reversePermutatition(blocks);
-    str = getString(blocks);
+    blocks = initialPermutation(blocks);// начальная перестановка
+    blocks = decoding(blocks, keys, startVec); // дешифрование
+    blocks = reversePermutatition(blocks); // обратная перестановка
+    str = getString(blocks); // получение строки шифрованного текста
     cout << str << endl;
 
     //getKeys(0x0101010101010101);
