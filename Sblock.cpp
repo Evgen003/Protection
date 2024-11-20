@@ -1,13 +1,6 @@
 #include "SBlock.h"
 
-SBlock sBlock[8];
-
-struct vec4bits{
-	unsigned char a : 4;
-};
-vec4bits vec[8];
-
-// ������� 4
+// таблица 4
 int TableSBlocks[8][4][16] = {	
 	// S box 1
 	14,  4, 13,  1,  2, 15, 11,  8,  3, 10,  6, 12,  5,  9,  0,  7,
@@ -52,37 +45,37 @@ int TableSBlocks[8][4][16] = {
 
 };
 
-// ������� 5
+// таблица 5
 int TableP[32] = {
 	15, 6, 19, 20, 28, 11, 27, 16, 0, 14, 22,  25, 4, 17, 30, 9,
 	1, 7, 23, 13, 31, 26, 2, 8, 18, 12, 29, 5, 21, 10, 3, 24
 };
 
 int getHalfBlock(Key48 extension) {
+	SBlock sBlock[8];
+	int block = 0;
+	// разбиение на 6 битные блоки
 	for (int i = 0; i < 8; i++) {
-		sBlock[7-i].s1 = extension.k >> (i * 6);
+		sBlock[i].s1 = extension.k >> (i * 6);
 	}
 	int k = 0;
 	int l = 0;
-	int a[8];
 	for (int i = 0; i < 8; i++) {
 		k = 0;
 		l = 0;
+		// формирование числа k
 		if (sBlock[i].s1 & (1 << 0)) k |= 1 << 0;
 		if (sBlock[i].s1 & (1 << 5)) k |= 1 << 1;
-
+		// формирование числа l
 		if (sBlock[i].s1 & (1 << 1)) l |= 1 << 0;
 		if (sBlock[i].s1 & (1 << 2)) l |= 1 << 1;
 		if (sBlock[i].s1 & (1 << 3)) l |= 1 << 2;
 		if (sBlock[i].s1 & (1 << 4)) l |= 1 << 3;
-		vec[i].a = 0;
-		vec[i].a = TableSBlocks[i][k][l];
-	}
-	int block = 0;
-	for (int i = 0; i < 8; i++) {
-		block |= vec[7-i].a << (i * 4);
+		//формирование 32 битного полублока по 4  битным векторам
+		block |= TableSBlocks[i][k][l] << i*4;
 	}
 	int outBlock = 0;
+	// перестановка
 	for (int i = 0; i < 32; i++) {
 		if ((1 << i) & block) outBlock |= (1 << TableP[i]);
 	}
