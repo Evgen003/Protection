@@ -7,6 +7,9 @@
 #include "SBlock.h"
 
 #define TOGGLE_BIT 0
+#define EQUAL_BLOCKS 0
+#define BLOCK_SIZE 8
+
 
 using namespace std;
 
@@ -15,7 +18,7 @@ struct HalfBlocks {
     int right;
 };
 union Block64 {
-    long long int a;
+    uint64_t a;
     char s[8];
     HalfBlocks half;
 };
@@ -120,6 +123,7 @@ unsigned int function(int right, Key48 key) {
 
 vector<Block64> coding(vector<Block64>inBlocks, vector<Key48>keys, long long int initVec) {
     Block64 newBlock;
+    Block64 outBlock;
     vector<Block64> outBlocks;
     int right;
     //Block64 prevBlock;
@@ -133,15 +137,17 @@ vector<Block64> coding(vector<Block64>inBlocks, vector<Key48>keys, long long int
             newBlock.half.right = newBlock.half.left ^ function(right, keys[i]);
             newBlock.half.left = right;
         }
-        
-        newBlock.a ^= block.a;
-        outBlocks.push_back(newBlock);
+        outBlock.a = 0;
+        outBlock.a = (newBlock.a >> (64 - BLOCK_SIZE)) ^ block.a;
+        newBlock.a = (newBlock.a << BLOCK_SIZE) | outBlock.a;
+        outBlocks.push_back(outBlock);
     }
     return outBlocks;
 }
 
 vector<Block64> decoding(vector<Block64>inBlocks, vector<Key48>keys, long long initVec) {
     Block64 newBlock;
+    Block64 outBlock;
     vector<Block64> outBlocks;
     int right;
     //Block64 prevBlock;
@@ -154,15 +160,55 @@ vector<Block64> decoding(vector<Block64>inBlocks, vector<Key48>keys, long long i
             newBlock.half.right = newBlock.half.left ^ function(right, keys[i]);
             newBlock.half.left = right;
         }
-        
-        newBlock.a ^= block.a;
-        outBlocks.push_back(newBlock);
-        newBlock = block;
+        outBlock.a = 0;
+        outBlock.a = (newBlock.a >> (64 - BLOCK_SIZE)) ^ block.a;
+        newBlock.a = (newBlock.a << BLOCK_SIZE) | outBlock.a;
+        outBlocks.push_back(outBlock);
     }
     return outBlocks;
 }
 
+vector<Block64>getBlocksKSize(string s) {
+    vector<Block64> blocksKSize;
+    vector<Block64> blocks64 = getBlocks(s);
+    uint64_t bitMask = pow(2, BLOCK_SIZE) - 1;
+    if (64 % BLOCK_SIZE == 0) {
+        int count = 64 / BLOCK_SIZE;
+        for (auto bl : blocks64) {
+            for (int i = 0; i < count; i++) {
+                Block64 newBlock;
+                newBlock.a = 0;
+                newBlock.a = (bl.a >> (i * BLOCK_SIZE)) & bitMask;
+                blocksKSize.push_back(newBlock);
+            }
+        }
+    }
+    return blocksKSize;
+}
+
+string getStringFromBlock(vector<Block64> blocks) {
+    vector<Block64> blocks64;
+    if (64 % BLOCK_SIZE == 0) {
+        int count = 64 / BLOCK_SIZE;
+        Block64 newblock;
+        newblock.a = 0;
+        int i = 0;
+        for (auto bl : blocks) {
+            newblock.a |= bl.a << (BLOCK_SIZE * i);
+            i++;
+            if (i >= BLOCK_SIZE) {
+                i = 0;
+                blocks64.push_back(newblock);
+                newblock.a = 0;
+            }
+
+        }
+    }
+    return getString(blocks64);
+}
+
 string str;
+
 int main() {
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
@@ -173,13 +219,15 @@ int main() {
 
     long long int initVec = 0x137881bdea5a2fde;
     vector<Key48> keys = getKeys(0x25df32ac2473dea2);
-    vector<Block64> blocks = getBlocks(str);
-    
+    //vector<Block64> blocks = getBlocks(str);
+    vector<Block64> blocks = getBlocksKSize(str);
+
     blocks = initialPermutation(blocks);
     blocks = coding(blocks, keys, initVec);
     //blocks = decoding(blocks, keys);
     blocks = reversePermutatition(blocks);
-    str=getString(blocks);
+    //str=getString(blocks);
+    str = getStringFromBlock(blocks);
     cout << str << endl << endl;
 
 #if TOGGLE_BIT
@@ -195,7 +243,7 @@ int main() {
     blocks = initialPermutation(blocks);
     blocks = decoding(blocks, keys, initVec);
     blocks = reversePermutatition(blocks);
-    str = getString(blocks);
+    str = getStringFromBlock(blocks);
     cout << str << endl;
     return 0;
 }
